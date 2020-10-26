@@ -1,0 +1,104 @@
+<html>
+<head>
+	<title>Lab 2 Part 2</title>
+	<!-- the Leaflet CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"/>
+	<!-- the Leaflet JavaScript library -->
+	<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script src= "https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.min.js"></script>
+	<!-- the Fullscreen plugin -->
+	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
+	<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
+
+	<!--CSS styles-->
+<style>
+body {
+	font-family: sans-serif;
+}
+body {
+	font-family: sans-serif;
+	max-width: 900px;
+	margin: auto;
+}
+#legend {
+	line-height: 0px;
+	background: white;
+	opacity: 0.8;
+	padding:5px 25px 5px 0px;
+}
+</style>
+
+</head>
+
+<body>
+	<h1><center>Potential Volcanic Hazards to Schools in Pierce County</center></h1>
+	<!-- code where we create and name the container that holds the map -->
+	<div id="map" style="height: 80%"></div>
+
+	<p>This map depicts volcanic hazards and schools that may be destroyed if there is a volcanic eruption.</p>
+
+	<div id="legend">
+			<h3><center>Legend</center></h3>
+			<ul style="list-style-type:none">
+				<li>
+					<svg width="24" height="24">
+						<circle cx="12" cy="14" r="6" stroke="red" stroke-width="3" fill="red" fill-opacity=".4"/>
+					</svg>
+					<text>Volcanic Hazardous Zone</text>
+				</li>
+				<li>
+					<svg width="24" height="24">
+						<img src="schoolicon.png" height=20px width=20px>
+					</svg>
+					<text>School</text>
+				</li>
+			</ul>
+		</div>
+
+
+	<!-- code where we build the map and its functionality -->
+	<script>
+		var mymap = L.map('map', {fullscreenControl: true,}).setView([47.15, -122.165973], 10);
+		var basemap = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png', {
+			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+		}).addTo(mymap);
+
+
+
+		var mySchools = L.icon({
+		    iconUrl: 'schoolicon.png',
+		    iconSize: [15, 18],
+		    iconAnchor: [0, 0],
+		    popupAnchor: [0, 0],
+		});
+
+		$.getJSON("Schools.geojson",function(data){
+				L.geoJson(data, {
+					 pointToLayer: function(feature, latlng){
+						 	var myMarker = L.marker(latlng, {icon: mySchools})
+						 	myMarker.bindPopup("School name: " + feature.properties.NAME + "<br>Address: " + feature.properties.ADDRESS + " " + feature.properties.CITY + ", WA " + feature.properties.ZIP + "<br>School district: " + feature.properties.DISTRICT + "<br>Phone number: " + feature.properties.PHONE)
+						return myMarker
+					}
+				}).addTo(mymap);
+		});
+
+
+
+		$.getJSON("Volcanic_Hazards.geojson",function(data){
+				L.geoJson(data, {
+					 style: function(feature){
+						 return{color: "red"};
+					}
+				}).addTo(mymap);
+		});
+
+		var Legend =  new L.Control.Legend({
+		position: 'bottomright',
+	});
+
+	mymap.addControl(Legend);
+	$(".legend-container").append( $("#legend") );
+	</script>
+</body>
+</html>
