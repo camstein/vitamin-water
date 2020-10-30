@@ -7,6 +7,7 @@
 	<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src= "https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.min.js"></script>
+	<script src="js/leaflet-providers.js"></script>
 	<!-- the Fullscreen plugin -->
 	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
 	<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
@@ -38,6 +39,7 @@ body {
 
 	<p>This map depicts volcanic hazards and schools that may be destroyed if there is a volcanic eruption.</p>
 
+<!-- Code to build the legend -->
 	<div id="legend">
 			<h3><center>Legend</center></h3>
 			<ul style="list-style-type:none">
@@ -60,15 +62,16 @@ body {
 	<!-- code where we build the map and its functionality -->
 	<script>
 		var mymap = L.map('map', {fullscreenControl: true,}).setView([47.15, -122.165973], 10);
-		var basemap = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png', {
-			attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+		var USGS_USImagery = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
+			maxZoom: 20,
+			attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a><br>School and Volcanic data courtesy of the <a href="https://gisdata-piercecowa.opendata.arcgis.com/">Pierce County Open GeoSpatial Data Portal</a>'
 		}).addTo(mymap);
 
 
 
 		var mySchools = L.icon({
 		    iconUrl: 'schoolicon.png',
-		    iconSize: [15, 18],
+		    iconSize: [30, 30],
 		    iconAnchor: [0, 0],
 		    popupAnchor: [0, 0],
 		});
