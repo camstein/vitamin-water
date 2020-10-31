@@ -1,43 +1,33 @@
 <html>
 <head>
-	<title>Lab 2 Part 2</title>
-	<!-- the Leaflet CSS -->
+	<title>Potential Volcanic Hazards to Schools in Pierce County</title>
+
+	<!-- The Leaflet CSS -->
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"/>
-	<!-- the Leaflet JavaScript library -->
+
+	<!-- The Leaflet JavaScript library -->
 	<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src= "https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.min.js"></script>
 	<script src="js/leaflet-providers.js"></script>
+
 	<!-- the Fullscreen plugin -->
 	<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
 	<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css' rel='stylesheet' />
 
-	<!--CSS styles-->
-<style>
-body {
-	font-family: sans-serif;
-}
-body {
-	font-family: sans-serif;
-	max-width: 900px;
-	margin: auto;
-}
-#legend {
-	line-height: 0px;
-	background: white;
-	opacity: 0.8;
-	padding:5px 25px 5px 0px;
-}
-</style>
+	<!-- The CSS stylesheet -->
+	<link rel="stylesheet" type="text/css" href="styles.css">
 
 </head>
-
 <body>
-	<h1><center>Potential Volcanic Hazards to Schools in Pierce County</center></h1>
-	<!-- code where we create and name the container that holds the map -->
+	<div class="header">
+	Potential Volcanic Hazards to Schools in Pierce County
+	</div>
+
+	<!-- Code to create and name the container for the map -->
 	<div id="map" style="height: 80%"></div>
 
-	<p>This map depicts volcanic hazards and schools that may be destroyed if there is a volcanic eruption.</p>
+	<p>This map depicts the volcanic hazards if Mt. Rainer were to explode and the schools in Pierce County that may be destroyed. The red zones are potential lava flow from the explosion. The schools are clearly marked. Click on the icon to find out more information about the schools.</p>
 
 <!-- Code to build the legend -->
 	<div id="legend">
@@ -50,7 +40,7 @@ body {
 					<text>Volcanic Hazardous Zone</text>
 				</li>
 				<li>
-					<svg width="24" height="24">
+					<svg width="2" height="24">
 						<img src="schoolicon.png" height=20px width=20px>
 					</svg>
 					<text>School</text>
@@ -58,16 +48,14 @@ body {
 			</ul>
 		</div>
 
-
-	<!-- code where we build the map and its functionality -->
+	<!-- Code to build the map and its functionality -->
 	<script>
-		var mymap = L.map('map', {fullscreenControl: true,}).setView([47.15, -122.165973], 10);
+		var mymap = L.map('map', {fullscreenControl: true,}).setView([47.15, -122.165973], 9.75);
 		var USGS_USImagery = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
 			maxZoom: 20,
-			attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a><br>School and Volcanic data courtesy of the <a href="https://gisdata-piercecowa.opendata.arcgis.com/">Pierce County Open GeoSpatial Data Portal</a>'
+			minZoom: 8,
+			attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a> -- School and Volcanic data courtesy of the <a href="https://gisdata-piercecowa.opendata.arcgis.com/">Pierce County Open GeoSpatial Data Portal</a> -- Icon courtesy of <a href="https://www.iconfinder.com/">Icon Finder</a>'
 		}).addTo(mymap);
-
-
 
 		var mySchools = L.icon({
 		    iconUrl: 'schoolicon.png',
@@ -85,8 +73,6 @@ body {
 					}
 				}).addTo(mymap);
 		});
-
-
 
 		$.getJSON("Volcanic_Hazards.geojson",function(data){
 				L.geoJson(data, {
