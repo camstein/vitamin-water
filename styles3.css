@@ -1,0 +1,35 @@
+body {
+  margin: auto;
+  background-color: #a3b7ff;
+  font-family: "Times New Roman", serif;
+  color: #	#09175c;
+  padding: 0;
+}
+
+.header {
+  text-align: center;
+  font-weight: bolder;
+  font-size: 36px;
+  overflow: hidden;
+  background-color: #5189ff;
+  padding: 20px 10px;
+}
+
+#map {
+  top: 0;
+  bottom: 0;
+  width: 80%;
+  height: 500px;
+}
+
+#map2 {
+  top: 0;
+  bottom: 0;
+  width: 80%;
+  height: 500px;
+}
+
+#menu {
+    padding: 0px 130px 50px;
+    font-family: 'Open Sans', sans-serif;
+}

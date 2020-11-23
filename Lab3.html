@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>2 Maps</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+
+<!-- The CSS stylesheet -->
+<link rel="stylesheet" type="text/css" href="styles3.css">
+</head>
+<body>
+
+	<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+	<link
+	rel="stylesheet"
+	href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css"
+	type="text/css"
+	/>
+	<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+	<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+	<div class="header">Two Maps to Rule Them All</div>
+	<br>
+	<center><div id="map"></center></div>
+			<div id="menu">
+			    <input id="streets-v11" type="radio" name="rtoggle" value="streets" checked="checked"/>
+					<label for="streets-v11">streets</label>
+					<input id="light-v10" type="radio" name="rtoggle" value="light" />
+					<label for="light-v10">light</label>
+					<input id="dark-v10" type="radio" name="rtoggle" value="dark" />
+					<label for="dark-v10">dark</label>
+					<input id="outdoors-v11" type="radio" name="rtoggle" value="outdoors" />
+					<label for="outdoors-v11">outdoors</label>
+					<input id="satellite-v9" type="radio" name="rtoggle" value="satellite" />
+					<label for="satellite-v9">satellite</label>
+		</div>
+
+
+	<script>
+		mapboxgl.accessToken = 'pk.eyJ1IjoiY2FtZXJvbnN0ZWluZXIzMSIsImEiOiJja2d5ZGkxd3IwM3QzMnFtbHU4bHd3bDF3In0.zgENseK2IczMU3rozbnjTw';
+
+		var map = new mapboxgl.Map({
+				container: 'map', // container id
+				style: 'mapbox://styles/mapbox/streets-v11', // style URL
+				center: [-122.165973, 47.25], // starting position [lng, lat]
+				zoom: 6 // starting zoom
+				});
+
+				// Add geocoder to map
+				map.addControl(
+						new MapboxGeocoder({
+						accessToken: mapboxgl.accessToken,
+						mapboxgl: mapboxgl
+						})
+					)
+
+				// Create variables for layers and inputs
+				var layerList = document.getElementById('menu');
+			  var inputs = layerList.getElementsByTagName('input');
+
+				// Function to change map layer
+	     function switchLayer(layer) {
+	         var layerId = layer.target.id;
+	         map.setStyle('mapbox://styles/mapbox/' + layerId);
+	     }
+
+	     for (var i = 0; i < inputs.length; i++) {
+	         inputs[i].onclick = switchLayer;
+	     }
+	</script>
+  <br>
+	<center><div id="map2"></div></center>
+	<script>
+	  mapboxgl.accessToken = 'pk.eyJ1IjoiY2FtZXJvbnN0ZWluZXIzMSIsImEiOiJja2d5ZGkxd3IwM3QzMnFtbHU4bHd3bDF3In0.zgENseK2IczMU3rozbnjTw';
+	    var map2 = new mapboxgl.Map({
+	        container: 'map2', // container id
+	        style: 'mapbox://styles/cameronsteiner31/ckhk1p63935mv1apjqsh39xv5', // style URL
+	        center: [-122.165973, 47.25], // starting position [lng, lat]
+	        zoom: 6 // starting zoom
+	    });
+
+		    //	Add GeoJSON layer
+		    map2.on('load', function(){
+
+			      //Add source layer for counties
+			      map2.addSource('counties', {
+			            "type": "geojson",
+			            "data": "https://opendata.arcgis.com/datasets/12712f465fc44fb58328c6e0255ca27e_11.geojson"
+			      });
+
+			        //Add counties to the map
+			        map2.addLayer({
+			          "id":"county-fills",
+			          "type":"fill",
+			          "source":"counties",
+			          "layout": {},
+			          "paint": {
+			            "fill-color": "#627BC1",
+			            "fill-opacity": 0.25
+			          }
+			        });
+
+			        // Add lines to counties on the map
+			        map2.addLayer({
+			        'id': 'county-borders',
+			        'type': 'line',
+			        'source': 'counties',
+			        'paint': {
+			        'line-color': '#0000FF',
+			        'line-width': 2
+			        }
+			      });
+
+			      map2.on('click', 'county-fills', function (e) {
+			          var coordinates = e.features[0].geometry.coordinates[0][0].slice();
+			          var description = e.features[0].properties.JURISDICT_NM;
+
+			          new mapboxgl.Popup()
+			              .setLngLat(coordinates)
+			              .setHTML(description)
+			              .addTo(map2);
+			      });
+
+			      // Change the cursor to a pointer when the mouse is over the places layer.
+			      map2.on('mouseenter', 'county-fills', function () {
+			      map2.getCanvas().style.cursor = 'pointer';
+			      });
+
+			      // Change it back to a pointer when it leaves.
+			      map2.on('mouseleave', 'county-fills', function () {
+			      map2.getCanvas().style.cursor = '';
+			      });
+
+						map2.loadImage('https://image.flaticon.com/icons/png/512/33/33777.png',
+								function (error, image) {
+										if (error) throw error;
+										map2.addImage('hospital', image);
+
+										map2.addSource('hospitals', {
+											"type": "geojson",
+											"data": "https://opendata.arcgis.com/datasets/626cb2ca35c64ea1a2ac502c573e3ec9_0.geojson"
+										});
+										map2.addLayer({
+											"id":"hospital-locations",
+											"type":"symbol",
+											"source":"hospitals",
+											"layout": {
+												'icon-image': 'hospital',
+												'icon-size': 0.035
+											}
+										});
+									});
+								});
+
+	</script>
+</body>
+</html>
