@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>T GIS 503 Lab 4 Autumn 2020 - Cameron Steiner</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css" rel="stylesheet" />
+
+<!-- The CSS stylesheet -->
+<link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+
+	<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+	<link
+	rel="stylesheet"
+	href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css"
+	type="text/css"
+	/>
+	<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+	<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+	<div class="header">COVID-19 Statistics in Washington State</div>
+	<p>On January 21st, 2019 the first case of coronavirus (COVID-19) was confirmed in Washington State and on February 29th, 2019 the first COVID-19 related death was confirmed in the state. COVID-19 has spread rapidly throughout the population over the course of this past year. The data gathered and displayed in these maps shows the concentration of reported active cases and deaths in the State of Washington. The maps show that the rate of infection was and is greater than anticpated and the current number of hospitals was and is unprepared to handle the pandemic. If everyone can follow the protocols set forth by the governing body hopefully we can get through the pandemic with minimal loss of life.</p>
+	<h1>Washington State's reported active COVID-19 cases by County and Hospital Locations</h1>
+	<center><div id="map"></div></center>
+	<div id="cases-legend" class="legend">
+			<h4>Active Cases</h4>
+			<div><span style="background-color: #723122"></span>4,000</div>
+			<div><span style="background-color: #8b4225"></span>3,500</div>
+			<div><span style="background-color: #a25626"></span>3,000</div>
+			<div><span style="background-color: #b86b25"></span>2,500</div>
+			<div><span style="background-color: #ca8323"></span>2,000</div>
+			<div><span style="background-color: #da9c20"></span>1,500</div>
+			<div><span style="background-color: #e6b71e"></span>1,000</div>
+			<div><span style="background-color: #eed322"></span>500</div>
+			<div><span style="background-color: #f2f12d"></span>0</div>
+			</div>
+	<br>
+	<p>The map above displays the reported active cases of COVID-19 by county in Washington State as well as locations of hospitals. The data for the COVID-19 Cases and hospital locations was obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital locations was obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of active COVID-19 cases as of December 6th, 2020.
+	</p>
+	<div id="div-wrapper">
+		<img src="covid.jpg" class="single" alt="COVID-19">
+		<img src="difference.gif" class="single" alt="How to help stop COVID-19">
+		<img src="covid19.jpg" class="single" alt="COVID-19">
+	</div>
+	<script>
+		mapboxgl.accessToken = 'pk.eyJ1IjoiY2FtZXJvbnN0ZWluZXIzMSIsImEiOiJja2d5ZGkxd3IwM3QzMnFtbHU4bHd3bDF3In0.zgENseK2IczMU3rozbnjTw';
+			var map = new mapboxgl.Map({
+					container: 'map', // container id
+					style: 'mapbox://styles/mapbox/streets-v11', // style URL
+					center: [-120.9, 47.35], // starting position [lng, lat]
+					zoom: 6 // starting zoom
+			});
+
+			//	Add GeoJSON layer
+			map.on('load', function(){
+
+				// Add source layer for counties
+				map.addSource('counties', {
+							"type": "geojson",
+							"data": "CountyCases.geojson"
+				});
+
+				//Add counties to map2
+				map.addLayer({
+					"id":"county-fills",
+					"type":"fill",
+					"source":"counties",
+					"layout": {},
+					"paint": {
+						"fill-color": [
+							'interpolate',
+							['linear'],
+							['get', 'CV_PositiveCases'],
+							0,
+							'#F2F12D',
+							500,
+							'#EED322',
+							1000,
+							'#E6B71E',
+							1500,
+							'#DA9C20',
+							2000,
+							'#CA8323',
+							2500,
+							'#B86B25',
+							3000,
+							'#A25626',
+							3500,
+							'#8B4225',
+							4000,
+							'#723122'
+							],
+						"fill-opacity": 0.65
+					}
+				});
+
+				// Add lines to counties on map2
+				map.addLayer({
+					'id': 'county-borders',
+					'type': 'line',
+					'source': 'counties',
+					'paint': {
+					'line-color': '#0000FF',
+					'line-width': 2
+					}
+				});
+
+				var popup = new mapboxgl.Popup()
+				// On click of county display popup
+				map.on('click', 'county-fills', function (e) {
+						var coordinates = e.features[0].geometry.coordinates[0][0].slice();
+						var description = e.features[0].properties.CNTY_NAME;
+						var phase = e.features[0].properties.CV_Comment;
+						var pcases = e.features[0].properties.CV_PositiveCases;
+						popup.setLngLat(coordinates).setHTML(description + " County is in " + phase + " and has " + pcases + " reported active cases of COVID-19").addTo(map);
+				});
+				// Load hospital icon
+				map.loadImage('Hospital_Icon.png',
+						function (error, image) {
+								if (error) throw error;
+								map.addImage('hospital', image);
+
+								// Add source layer for hospitals
+								map.addSource('hospitals', {
+									"type": "geojson",
+									"data": "Hospitals.geojson"
+								});
+
+								// Add hospitals to map
+								map.addLayer({
+									"id":"hospital-locations",
+									"type":"symbol",
+									"source":"hospitals",
+									"layout": {
+										'icon-image': 'hospital',
+										'icon-size': 0.05
+									}
+								});
+
+								// Setting up popup2 for map2
+								var popup2 =  new mapboxgl.Popup({
+									closeButton: false,
+									closeOnClick: false
+								});
+								map.on('mouseenter', 'county-fills', function (e) {
+									map.getCanvas().style.cursor = 'pointer';
+										var coordinates = e.features[0].geometry.coordinates;
+										var description = e.features[0].properties.NAME + " has " + e.features[0].properties.Beds_Total + "  beds.";
+									popup2.setLngLat(coordinates).setHTML(description).addTo(map);
+								});
+
+								// Change it back to a pointer when it leaves.
+								map.on('mouseleave', 'county-fills', function () {
+									map2.getCanvas().style.cursor = '';
+									popup2.remove();
+								});
+							});
+						});
+	</script>
+  <br>
+	<h1>Washington State's reported COVID-19 deaths by County and Hospital Locations</h1>
+	<center><div id="map2"></div></center>
+	<div id="death-legend" class="legend">
+			<h4>Reported Deaths</h4>
+			<div><span style="background-color: #723122"></span>400</div>
+			<div><span style="background-color: #8b4225"></span>350</div>
+			<div><span style="background-color: #a25626"></span>300</div>
+			<div><span style="background-color: #b86b25"></span>250</div>
+			<div><span style="background-color: #ca8323"></span>200</div>
+			<div><span style="background-color: #da9c20"></span>150</div>
+			<div><span style="background-color: #e6b71e"></span>100</div>
+			<div><span style="background-color: #eed322"></span>50</div>
+			<div><span style="background-color: #f2f12d"></span>0</div>
+			</div>
+
+	<br>
+	<p>The map above displays the reported deaths of COVID-19 by county in Washington State as well as locations of hospitals. The data for the COVID-19 Cases and hospital locations was obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital locations was obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of deaths caused by COVID-19 as of December 6th, 2020.
+	</p>
+	<script>
+	  mapboxgl.accessToken = 'pk.eyJ1IjoiY2FtZXJvbnN0ZWluZXIzMSIsImEiOiJja2d5ZGkxd3IwM3QzMnFtbHU4bHd3bDF3In0.zgENseK2IczMU3rozbnjTw';
+	    var map2 = new mapboxgl.Map({
+	        container: 'map2', // container id
+	        style: 'mapbox://styles/mapbox/streets-v11', // style URL
+	        center: [-120.9, 47.35], // starting position [lng, lat]
+	        zoom: 6 // starting zoom
+	    });
+
+	    //	Add GeoJSON layer
+	    map2.on('load', function(){
+
+	      // Add source layer for counties
+	      map2.addSource('counties', {
+	            "type": "geojson",
+	            "data": "CountyCases.geojson"
+	      });
+
+        //Add counties to map2
+        map2.addLayer({
+          "id":"county-fills",
+          "type":"fill",
+          "source":"counties",
+          "layout": {},
+          "paint": {
+            "fill-color": [
+							'interpolate',
+							['linear'],
+							['get', 'CV_Deaths'],
+							0,
+							'#F2F12D',
+							50,
+							'#EED322',
+							100,
+							'#E6B71E',
+							150,
+							'#DA9C20',
+							200,
+							'#CA8323',
+							250,
+							'#B86B25',
+							300,
+							'#A25626',
+							350,
+							'#8B4225',
+							400,
+							'#723122'
+							],
+            "fill-opacity": 0.65
+          }
+        });
+
+        // Add lines to counties on map2
+        map2.addLayer({
+	        'id': 'county-borders',
+	        'type': 'line',
+	        'source': 'counties',
+	        'paint': {
+	        'line-color': '#0000FF',
+	        'line-width': 2
+	        }
+	      });
+
+				var popup = new mapboxgl.Popup()
+				// On click of county display popup
+	      map2.on('click', 'county-fills', function (e) {
+	          var coordinates = e.features[0].geometry.coordinates[0][0].slice();
+	          var description = e.features[0].properties.CNTY_NAME;
+						var phase = e.features[0].properties.CV_Comment;
+						var deaths = e.features[0].properties.CV_Deaths;
+	      		popup.setLngLat(coordinates).setHTML(description + " County is in " + phase + " and has "  + deaths + " reported deaths from COVID-19").addTo(map2);
+	      });
+				// Load hospital icon
+				map2.loadImage('Hospital_Icon.png',
+						function (error, image) {
+								if (error) throw error;
+								map2.addImage('hospital', image);
+
+								// Add source layer for hospitals
+								map2.addSource('hospitals', {
+									"type": "geojson",
+									"data": "Hospitals.geojson"
+								});
+
+								// Add hospitals to map2
+								map2.addLayer({
+									"id":"hospital-locations",
+									"type":"symbol",
+									"source":"hospitals",
+									"layout": {
+										'icon-image': 'hospital',
+										'icon-size': 0.05
+									}
+								});
+
+								// Setting up popup2 for map2
+								var popup2 =  new mapboxgl.Popup({
+									closeButton: false,
+									closeOnClick: false
+								});
+								map2.on('mouseenter', 'county-fills', function (e) {
+									map2.getCanvas().style.cursor = 'pointer';
+					          var coordinates = e.features[0].geometry.coordinates;
+					          var description = e.features[0].properties.NAME + " has " + e.features[0].properties.Beds_Total + "  beds.";
+					        popup2.setLngLat(coordinates).setHTML(description).addTo(map2);
+					      });
+
+								// Change it back to a pointer when it leaves.
+								map2.on('mouseleave', 'county-fills', function () {
+									map2.getCanvas().style.cursor = '';
+									popup2.remove();
+								});
+							});
+						});
+	</script>
+</body>
+</html>
