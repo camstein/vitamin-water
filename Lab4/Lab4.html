@@ -23,9 +23,10 @@
 	<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
 
 	<div class="header">COVID-19 Statistics in Washington State</div>
-	<p>On January 21st, 2019 the first case of coronavirus (COVID-19) was confirmed in Washington State and on February 29th, 2019 the first COVID-19 related death was confirmed in the state. COVID-19 has spread rapidly throughout the population over the course of this past year. The data gathered and displayed in these maps shows the concentration of reported active cases and deaths in the State of Washington. The maps show that the rate of infection was and is greater than anticpated and the current number of hospitals was and is unprepared to handle the pandemic. If everyone can follow the protocols set forth by the governing body hopefully we can get through the pandemic with minimal loss of life.</p>
+	<p>On January 21st, 2019 the first case of coronavirus (COVID-19) was confirmed in Washington State and on February 29th, 2019 the first COVID-19 related death was confirmed in the state. COVID-19 has spread rapidly throughout the population over the course of this past year. The data gathered and displayed in these maps shows the concentration of reported active cases and deaths in the State of Washington. The maps show that the rate of infection was and is greater than anticpated and the current number of hospitals was and is unprepared to handle the pandemic. They also show that the larger the numbers of reported cases and deaths correlates to counties with a larger number of schools. If everyone can follow the protocols set forth by the governing body hopefully we can get through the pandemic with minimal loss of life.</p>
 	<h1>Washington State's reported active COVID-19 cases by County and Hospital Locations</h1>
-	<center><div id="map"></div></center>
+  <nav id='menu'></nav>
+	<div id="map"></div>
 	<div id="cases-legend" class="legend">
 			<h4>Active Cases</h4>
 			<div><span style="background-color: #723122"></span>4,000</div>
@@ -39,7 +40,7 @@
 			<div><span style="background-color: #f2f12d"></span>0</div>
 			</div>
 	<br>
-	<p>The map above displays the reported active cases of COVID-19 by county in Washington State as well as locations of hospitals. The data for the COVID-19 Cases and hospital locations was obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital locations was obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of active COVID-19 cases as of December 6th, 2020.
+	<p>The map above displays the reported active cases of COVID-19 by county in Washington State as well as locations of hospitals and schools. The data for the COVID-19 cases and deaths, hospital locations, and school locations were obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital and school locations were obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of active COVID-19 cases as of December 6th, 2020.
 	</p>
 	<div id="div-wrapper">
 		<img src="covid.jpg" class="single" alt="COVID-19">
@@ -125,24 +126,49 @@
 								map.addImage('hospital', image);
 
 								// Add source layer for hospitals
-								map.addSource('hospitals', {
+								map.addSource('Hospitals', {
 									"type": "geojson",
 									"data": "Hospitals.geojson"
 								});
 
 								// Add hospitals to map
 								map.addLayer({
-									"id":"hospital-locations",
+									"id":"Hospitals",
 									"type":"symbol",
-									"source":"hospitals",
+									"source":"Hospitals",
 									"layout": {
+										'visibility': 'visible',
 										'icon-image': 'hospital',
 										'icon-size': 0.05
 									}
 								});
+								// Load school icon
+								map.loadImage('schoolicon.png',
+										function (error, image) {
+												if (error) throw error;
+												map.addImage('school', image);
 
-								// Setting up popup2 for map2
-								var popup2 =  new mapboxgl.Popup({
+												// Add source layer for schools
+												map.addSource('Schools', {
+													"type": "geojson",
+													"data": "Schools.geojson"
+												});
+
+												// Add schools to map2
+												map.addLayer({
+													"id":"Schools",
+													"type":"symbol",
+													"source":"Schools",
+													"layout": {
+														'icon-image': 'school',
+														'icon-size': .035,
+														'visibility': 'visible'
+													}
+												});
+										});
+
+								// Setting up popup2 for map
+								var popup =  new mapboxgl.Popup({
 									closeButton: false,
 									closeOnClick: false
 								});
@@ -150,20 +176,55 @@
 									map.getCanvas().style.cursor = 'pointer';
 										var coordinates = e.features[0].geometry.coordinates;
 										var description = e.features[0].properties.NAME + " has " + e.features[0].properties.Beds_Total + "  beds.";
-									popup2.setLngLat(coordinates).setHTML(description).addTo(map);
+									popup.setLngLat(coordinates).setHTML(description).addTo(map);
 								});
 
 								// Change it back to a pointer when it leaves.
 								map.on('mouseleave', 'county-fills', function () {
-									map2.getCanvas().style.cursor = '';
-									popup2.remove();
+									map.getCanvas().style.cursor = '';
+									popup.remove();
 								});
 							});
+
+							// enumerate ids of the layers
+		var toggleableLayerIds = ['Hospitals', 'Schools'];
+
+		// set up the corresponding toggle button for each layer
+		for (var i = 0; i < toggleableLayerIds.length; i++) {
+			var id = toggleableLayerIds[i];
+
+			var link = document.createElement('a');
+			link.href = '#';
+			link.className = 'active';
+			link.textContent = id;
+
+			link.onclick = function (e) {
+				var clickedLayer = this.textContent;
+				e.preventDefault();
+				e.stopPropagation();
+
+				var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+
+				// toggle layer visibility by changing the layout object's visibility property
+				if (visibility === 'visible') {
+				map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+				this.className = '';
+				} else {
+				this.className = 'active';
+				map.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+				}
+		};
+
+			var layers = document.getElementById('menu');
+			layers.appendChild(link);
+		}
 						});
 	</script>
   <br>
 	<h1>Washington State's reported COVID-19 deaths by County and Hospital Locations</h1>
-	<center><div id="map2"></div></center>
+	<nav id="menu2"></nav>
+	<div id="map2"></div>
+
 	<div id="death-legend" class="legend">
 			<h4>Reported Deaths</h4>
 			<div><span style="background-color: #723122"></span>400</div>
@@ -178,7 +239,7 @@
 			</div>
 
 	<br>
-	<p>The map above displays the reported deaths of COVID-19 by county in Washington State as well as locations of hospitals. The data for the COVID-19 Cases and hospital locations was obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital locations was obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of deaths caused by COVID-19 as of December 6th, 2020.
+	<p>The map above displays the reported deaths of COVID-19 by county in Washington State as well as locations of hospitals. The data for the COVID-19 cases and deaths, hospital locations, and school locations were obtained from the <a href="https://geo.wa.gov/">Washington Geospatial Open Data Portal</a>. The icons used for the hospital and school locations were obtained from <a href="https://www.flaticon.com">Flaticon</a>. By clicking on the county a popup will appear with the name of the county, its phase, and the number of deaths caused by COVID-19 as of December 6th, 2020.
 	</p>
 	<script>
 	  mapboxgl.accessToken = 'pk.eyJ1IjoiY2FtZXJvbnN0ZWluZXIzMSIsImEiOiJja2d5ZGkxd3IwM3QzMnFtbHU4bHd3bDF3In0.zgENseK2IczMU3rozbnjTw';
@@ -203,7 +264,9 @@
           "id":"county-fills",
           "type":"fill",
           "source":"counties",
-          "layout": {},
+          "layout": {
+						'visibility': 'visible'
+					},
           "paint": {
             "fill-color": [
 							'interpolate',
@@ -266,14 +329,40 @@
 
 								// Add hospitals to map2
 								map2.addLayer({
-									"id":"hospital-locations",
+									"id":"Hospitals",
 									"type":"symbol",
 									"source":"hospitals",
 									"layout": {
 										'icon-image': 'hospital',
-										'icon-size': 0.05
+										'icon-size': 0.06,
+										'visibility': 'visible'
 									}
 								});
+
+				// Load school icon
+				map2.loadImage('schoolicon.png',
+						function (error, image) {
+								if (error) throw error;
+								map2.addImage('school', image);
+
+								// Add source layer for schools
+								map2.addSource('Schools', {
+									"type": "geojson",
+									"data": "Schools.geojson"
+								});
+
+								// Add schools to map2
+								map2.addLayer({
+									"id":"Schools",
+									"type":"symbol",
+									"source":"Schools",
+									"layout": {
+										'icon-image': 'school',
+										'icon-size': 0.035,
+										'visibility': 'visible'
+									}
+								});
+						});
 
 								// Setting up popup2 for map2
 								var popup2 =  new mapboxgl.Popup({
@@ -293,6 +382,39 @@
 									popup2.remove();
 								});
 							});
+
+							// enumerate ids of the layers
+		var toggleableLayerIds = ['Hospitals', 'Schools'];
+
+		// set up the corresponding toggle button for each layer
+		for (var i = 0; i < toggleableLayerIds.length; i++) {
+			var id = toggleableLayerIds[i];
+
+			var link = document.createElement('a');
+			link.href = '#';
+			link.className = 'active';
+			link.textContent = id;
+
+			link.onclick = function (e) {
+				var clickedLayer = this.textContent;
+				e.preventDefault();
+				e.stopPropagation();
+
+				var visibility = map2.getLayoutProperty(clickedLayer, 'visibility');
+
+				// toggle layer visibility by changing the layout object's visibility property
+				if (visibility === 'visible') {
+				map2.setLayoutProperty(clickedLayer, 'visibility', 'none');
+				this.className = '';
+				} else {
+				this.className = 'active';
+				map2.setLayoutProperty(clickedLayer, 'visibility', 'visible');
+				}
+		};
+
+			var layers = document.getElementById('menu2');
+			layers.appendChild(link);
+		}
 						});
 	</script>
 </body>
