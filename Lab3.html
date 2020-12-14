@@ -73,6 +73,7 @@
    for (var i = 0; i < inputs.length; i++) {
        inputs[i].onclick = switchLayer;
    }
+	 map.addControl(new mapboxgl.FullscreenControl(), 'top-left');
 	</script>
   <br>
 	<h2>Washington State Counties and Hospital Locations</h2>
@@ -150,6 +151,7 @@
 										'icon-size': 0.035
 									}
 								});
+							});
 
 								// Setting up popup2 for map2
 								var popup2 =  new mapboxgl.Popup({
@@ -168,8 +170,8 @@
 									map2.getCanvas().style.cursor = '';
 									popup2.remove();
 								});
-							});
-						});
+				map2.addControl(new mapboxgl.FullscreenControl(), 'top-left');
+		});
 	</script>
 </body>
 </html>
